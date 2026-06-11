@@ -24,7 +24,7 @@
   ],
   "screenshots": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23fff' width='540' height='720'/><rect fill='%23EEEDFE' width='540' height='120'/><text x='270' y='60' font-size='40' text-anchor='middle' font-family='system-ui' font-weight='bold' fill='%233C3489'>🌸 손성짱</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%23fff' width='540' height='720'/><rect fill='%23EEEDFE' width='540' height='120'/><text x='270' y='60' font-size='40' text-anchor='middle' font-family='system-ui' font-weight='bold' fill='%233C3489'>🌸 우리 일기</text></svg>",
       "sizes": "540x720",
       "type": "image/svg+xml",
       "form_factor": "narrow"
