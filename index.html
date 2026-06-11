@@ -48,7 +48,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;c
 .nav-tab.active{color:var(--p600);border-bottom:2px solid var(--p600);background:#fff;}
 .tab-content{flex:1;padding:16px;overflow-y:auto;}
 .section-label{font-size:11px;font-weight:500;color:#999;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
-.hidden{display:none;}
+.hidden{
+  display:none !important;
+}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:12px;}
 .cal-dh{text-align:center;font-size:10px;color:#999;padding:4px 0;}
 .cal-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:50%;color:#333;cursor:pointer;}
