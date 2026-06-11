@@ -1,6 +1,6 @@
 {
-  "name": "손성짱 - 커플 앱",
-  "short_name": "손성짱",
+  "name": "우리 일기 - 커플 앱",
+  "short_name": "우리 일기",
   "description": "우리만의 캘린더, 앨범, 메모 앱",
   "start_url": "/",
   "scope": "/",
