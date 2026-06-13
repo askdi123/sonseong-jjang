@@ -81,11 +81,13 @@ html,body{width:100%;height:100%;background:#f8f8f8;font-family:-apple-system,Bl
 .upcoming-title{font-size:13px;font-weight:500;color:#333;}
 .upcoming-sub{font-size:11px;color:#999;margin-top:2px;}
 
-.album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.album-item{border-radius:10px;overflow:hidden;background:#f5f5f5;cursor:pointer;transition:all 0.2s;position:relative;}
+.album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
+.album-item{border-radius:12px;overflow:hidden;background:#f5f5f5;cursor:pointer;transition:all 0.2s;position:relative;border:0.5px solid #ddd;}
 .album-img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
-.album-add{border:1.5px dashed #ddd;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--p400);font-size:10px;background:#fafafa;}
-.album-add i{font-size:20px;}
+.album-date{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:4px 6px;text-align:center;}
+.album-del-btn{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(83,74,183,0.9);border:none;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.album-add{border:2px dashed var(--p600);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--p600);font-size:12px;background:var(--p50);border-radius:12px;font-weight:600;}
+.album-add i{font-size:28px;}
 #photo-input{display:none;}
 
 .memo-card{background:#f5f5f5;border-radius:10px;border:0.5px solid #ddd;padding:12px;margin-bottom:10px;}
@@ -94,13 +96,13 @@ html,body{width:100%;height:100%;background:#f8f8f8;font-family:-apple-system,Bl
 .memo-actions{display:flex;gap:4px;}
 .memo-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;color:#999;}
 .memo-btn:active{color:var(--p600);}
-.memo-body{font-size:12px;color:#666;line-height:1.6;margin-top:6px;}
+.memo-body{font-size:12px;color:#666;line-height:1.6;margin-top:6px;white-space:pre-wrap;word-break:break-word;}
 .memo-date{font-size:10px;color:#999;margin-top:8px;text-align:right;}
 
-.add-btn{width:100%;padding:10px;border-radius:10px;border:1.5px dashed #ddd;background:transparent;color:var(--p600);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;}
+.add-btn{width:100%;padding:12px;border-radius:10px;border:1.5px dashed #ddd;background:transparent;color:var(--p600);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;}
 
 .modal-backdrop{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(38,33,92,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;}
-.modal-box{background:#fff;border-radius:16px;border:0.5px solid #ddd;padding:20px;width:100%;max-width:320px;}
+.modal-box{background:#fff;border-radius:16px;border:0.5px solid #ddd;padding:20px;width:100%;max-width:320px;max-height:90vh;overflow-y:auto;}
 .modal-title{font-size:16px;font-weight:600;color:#333;margin-bottom:4px;}
 .modal-date{font-size:13px;color:var(--p600);margin-bottom:12px;}
 .modal-box input,.modal-box textarea{width:100%;padding:10px 12px;border-radius:10px;border:0.5px solid #ddd;font-size:13px;background:#f5f5f5;color:#333;margin-bottom:8px;font-family:inherit;}
@@ -210,7 +212,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;font-family:-apple-system,Bl
   </div>
 
   <div id="tab-album" class="tab-content hidden">
-    <div class="section-label" style="margin-bottom:14px;">추억 앨범</div>
+    <div class="section-label">추억 앨범</div>
     <div class="album-grid" id="album-grid"></div>
     <input type="file" id="photo-input" accept="image/*" onchange="addPhoto()">
   </div>
@@ -292,7 +294,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;font-family:-apple-system,Bl
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeMemo()">취소</button>
       <button id="btn-memo-del" class="btn-del hidden" onclick="delMemo()">삭제</button>
-      <button class="btn-save" onclick="saveMemo()">저장</button>
+      <button class="btn-save" id="btn-memo-save" onclick="saveMemo()">저장</button>
     </div>
   </div>
 </div>
@@ -426,8 +428,16 @@ function delEvent(){if(!confirm('삭제할까요?'))return;delete state.events[e
 
 function renderAlbum(){
   const grid=document.getElementById('album-grid');grid.innerHTML='';
-  state.photos.forEach(p=>{const item=document.createElement('div');item.className='album-item';item.style.position='relative';if(p.data){const img=document.createElement('img');img.className='album-img';img.src=p.data;img.onclick=()=>alert(p.name+'\n'+p.caption);item.appendChild(img);}const del=document.createElement('button');del.style.position='absolute';del.style.top='4px';del.style.right='4px';del.style.width='24px';del.style.height='24px';del.style.borderRadius='50%';del.style.background='rgba(83,74,183,0.85)';del.style.border='none';del.style.color='#fff';del.style.cursor='pointer';del.style.fontSize='12px';del.innerHTML='×';del.onclick=()=>{if(!confirm('삭제할까요?'))return;state.photos=state.photos.filter(x=>x.id!==p.id);save();renderAlbum();};item.appendChild(del);grid.appendChild(item);});
-  const add=document.createElement('div');add.className='album-item album-add';add.innerHTML='<i class="ti ti-plus"></i>';add.onclick=()=>document.getElementById('photo-input').click();grid.appendChild(add);
+  state.photos.forEach(p=>{
+    const item=document.createElement('div');item.className='album-item';
+    if(p.data){
+      const img=document.createElement('img');img.className='album-img';img.src=p.data;img.onclick=()=>alert(p.name+'\n'+p.caption);item.appendChild(img);
+      const dateLabel=document.createElement('div');dateLabel.className='album-date';dateLabel.textContent=p.date;item.appendChild(dateLabel);
+    }
+    const del=document.createElement('button');del.className='album-del-btn';del.innerHTML='×';del.onclick=(e)=>{e.stopPropagation();if(!confirm('삭제할까요?'))return;state.photos=state.photos.filter(x=>x.id!==p.id);save();renderAlbum();};item.appendChild(del);
+    grid.appendChild(item);
+  });
+  const add=document.createElement('div');add.className='album-item album-add';add.innerHTML='<i class="ti ti-plus"></i><span>추가</span>';add.onclick=()=>document.getElementById('photo-input').click();grid.appendChild(add);
 }
 
 function addPhoto(){
@@ -447,7 +457,7 @@ function confirmDelMemo(id){if(!confirm('삭제할까요?'))return;state.memos=s
 function openMemo(){editMemoId=null;document.getElementById('memo-title').textContent='메모 쓰기 ✏️';document.getElementById('memo-title-in').value='';document.getElementById('memo-body-in').value='';document.getElementById('btn-memo-del').classList.add('hidden');show('modal-memo');}
 function editMemo(id){const m=state.memos.find(x=>x.id===id);if(!m)return;editMemoId=id;document.getElementById('memo-title').textContent='메모 수정 ✏️';document.getElementById('memo-title-in').value=m.title;document.getElementById('memo-body-in').value=m.body;document.getElementById('btn-memo-del').classList.remove('hidden');show('modal-memo');}
 function closeMemo(){hide('modal-memo');editMemoId=null;}
-function saveMemo(){const title=document.getElementById('memo-title-in').value.trim();const body=document.getElementById('memo-body-in').value.trim();if(!title&&!body){closeMemo();return;}const today=new Date();const dateStr=(today.getMonth()+1)+'월 '+today.getDate()+'일';if(editMemoId!==null){const m=state.memos.find(x=>x.id===editMemoId);if(m){m.title=title||'메모';m.body=body;}}else{state.memos.push({id:state.nextMemoId++,title:title||'메모',body,date:dateStr});}save();closeMemo();renderMemo();}
+function saveMemo(){const title=document.getElementById('memo-title-in').value.trim();const body=document.getElementById('memo-body-in').value.trim();if(!title&&!body){alert('제목이나 내용을 입력해주세요');return;}const today=new Date();const dateStr=(today.getMonth()+1)+'월 '+today.getDate()+'일';if(editMemoId!==null){const m=state.memos.find(x=>x.id===editMemoId);if(m){m.title=title||'메모';m.body=body;}}else{state.memos.push({id:state.nextMemoId++,title:title||'메모',body,date:dateStr});}save();closeMemo();renderMemo();}
 function delMemo(){if(!confirm('삭제할까요?'))return;state.memos=state.memos.filter(m=>m.id!==editMemoId);save();closeMemo();renderMemo();}
 function tab(t,btn){['cal','album','memo','set'].forEach(x=>hide('tab-'+x));document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));show('tab-'+t);btn.classList.add('active');}
 
