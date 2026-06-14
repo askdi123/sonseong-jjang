@@ -81,12 +81,16 @@ html,body{width:100%;height:100%;background:#f8f8f8;font-family:-apple-system,Bl
 .upcoming-title{font-size:13px;font-weight:500;color:#333;}
 .upcoming-sub{font-size:11px;color:#999;margin-top:2px;}
 
+.date-filter{display:flex;gap:4px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;}
+.date-filter-btn{padding:6px 12px;border-radius:8px;border:0.5px solid #ddd;background:#f5f5f5;font-size:11px;color:#999;cursor:pointer;white-space:nowrap;}
+.date-filter-btn.active{background:var(--p50);border-color:var(--p400);color:var(--p600);font-weight:600;}
+
 .album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
-.album-item{border-radius:12px;overflow:hidden;background:#f5f5f5;cursor:pointer;transition:all 0.2s;position:relative;border:0.5px solid #ddd;}
-.album-img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+.album-item{border-radius:12px;overflow:hidden;background:#f5f5f5;cursor:pointer;transition:all 0.2s;position:relative;border:0.5px solid #ddd;aspect-ratio:1;}
+.album-img{width:100%;height:100%;object-fit:cover;display:block;}
 .album-date{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:#fff;font-size:10px;padding:4px 6px;text-align:center;}
 .album-del-btn{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(83,74,183,0.9);border:none;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-.album-add{border:2px dashed var(--p600);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--p600);font-size:12px;background:var(--p50);border-radius:12px;font-weight:600;}
+.album-add{border:2px dashed var(--p600);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--p600);font-size:12px;background:var(--p50);border-radius:12px;font-weight:600;aspect-ratio:1;}
 .album-add i{font-size:28px;}
 #photo-input{display:none;}
 
@@ -213,6 +217,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;font-family:-apple-system,Bl
 
   <div id="tab-album" class="tab-content hidden">
     <div class="section-label">추억 앨범</div>
+    <div class="date-filter" id="date-filter"></div>
     <div class="album-grid" id="album-grid"></div>
     <input type="file" id="photo-input" accept="image/*" onchange="addPhoto()">
   </div>
@@ -294,7 +299,7 @@ html,body{width:100%;height:100%;background:#f8f8f8;font-family:-apple-system,Bl
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeMemo()">취소</button>
       <button id="btn-memo-del" class="btn-del hidden" onclick="delMemo()">삭제</button>
-      <button class="btn-save" id="btn-memo-save" onclick="saveMemo()">저장</button>
+      <button class="btn-save" onclick="saveMemo()">저장</button>
     </div>
   </div>
 </div>
@@ -305,7 +310,7 @@ const MN=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월'
 const ME=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 
 let state={myName:'',startDate:'',myCode:'',partnerCode:'',events:{},photos:[],memos:[],nextPhotoId:1,nextMemoId:1};
-let curY=2026,curM=5,selType='met',editKey=null,editMemoId=null,tempPhotoData=null;
+let curY=2026,curM=5,selType='met',editKey=null,editMemoId=null,tempPhotoData=null,albumDateFilter='all';
 
 function load(){try{const s=localStorage.getItem('s');if(s)state=JSON.parse(s);}catch(e){}}
 function save(){try{localStorage.setItem('s',JSON.stringify(state));localStorage.setItem('onboarded','1');if(state.partnerCode)syncData();}catch(e){}}
@@ -426,17 +431,31 @@ function updateTypeBtn(){document.getElementById('btn-met').className='type-btn'
 function saveEvent(){state.events[editKey]={type:selType,label:document.getElementById('event-label').value.trim()};save();closeDay();renderCal();}
 function delEvent(){if(!confirm('삭제할까요?'))return;delete state.events[editKey];save();closeDay();renderCal();}
 
+function renderAlbumFilter(){
+  const dates=new Set(state.photos.map(p=>p.date.slice(0,7)));
+  const sorted=[...dates].sort().reverse();
+  const filter=document.getElementById('date-filter');filter.innerHTML='';
+  
+  const allBtn=document.createElement('button');allBtn.className='date-filter-btn'+(albumDateFilter==='all'?' active':'');allBtn.textContent='모두';allBtn.onclick=()=>{albumDateFilter='all';renderAlbumFilter();renderAlbum();};filter.appendChild(allBtn);
+  
+  sorted.forEach(d=>{const btn=document.createElement('button');btn.className='date-filter-btn'+(albumDateFilter===d?' active':'');const [y,m]=d.split('-');btn.textContent=m+'월';btn.onclick=()=>{albumDateFilter=d;renderAlbumFilter();renderAlbum();};filter.appendChild(btn);});
+}
+
 function renderAlbum(){
   const grid=document.getElementById('album-grid');grid.innerHTML='';
-  state.photos.forEach(p=>{
+  let photos=state.photos;
+  if(albumDateFilter!=='all'){photos=photos.filter(p=>p.date.slice(0,7)===albumDateFilter);}
+  
+  photos.forEach(p=>{
     const item=document.createElement('div');item.className='album-item';
     if(p.data){
       const img=document.createElement('img');img.className='album-img';img.src=p.data;img.onclick=()=>alert(p.name+'\n'+p.caption);item.appendChild(img);
       const dateLabel=document.createElement('div');dateLabel.className='album-date';dateLabel.textContent=p.date;item.appendChild(dateLabel);
     }
-    const del=document.createElement('button');del.className='album-del-btn';del.innerHTML='×';del.onclick=(e)=>{e.stopPropagation();if(!confirm('삭제할까요?'))return;state.photos=state.photos.filter(x=>x.id!==p.id);save();renderAlbum();};item.appendChild(del);
+    const del=document.createElement('button');del.className='album-del-btn';del.innerHTML='×';del.onclick=(e)=>{e.stopPropagation();if(!confirm('삭제할까요?'))return;state.photos=state.photos.filter(x=>x.id!==p.id);save();renderAlbumFilter();renderAlbum();};item.appendChild(del);
     grid.appendChild(item);
   });
+  
   const add=document.createElement('div');add.className='album-item album-add';add.innerHTML='<i class="ti ti-plus"></i><span>추가</span>';add.onclick=()=>document.getElementById('photo-input').click();grid.appendChild(add);
 }
 
@@ -446,7 +465,7 @@ function addPhoto(){
 }
 
 function closePhoto(){hide('modal-photo');tempPhotoData=null;}
-function savePhoto(){const name=document.getElementById('photo-memo').value.trim()||'추억';const caption=document.getElementById('photo-caption').value.trim();state.photos.push({id:state.nextPhotoId++,name,caption,data:tempPhotoData,date:new Date().toISOString().slice(0,10)});save();closePhoto();renderAlbum();}
+function savePhoto(){const name=document.getElementById('photo-memo').value.trim()||'추억';const caption=document.getElementById('photo-caption').value.trim();state.photos.push({id:state.nextPhotoId++,name,caption,data:tempPhotoData,date:new Date().toISOString().slice(0,10)});save();closePhoto();renderAlbumFilter();renderAlbum();}
 
 function renderMemo(){
   const list=document.getElementById('memo-list');list.innerHTML='';
@@ -457,9 +476,43 @@ function confirmDelMemo(id){if(!confirm('삭제할까요?'))return;state.memos=s
 function openMemo(){editMemoId=null;document.getElementById('memo-title').textContent='메모 쓰기 ✏️';document.getElementById('memo-title-in').value='';document.getElementById('memo-body-in').value='';document.getElementById('btn-memo-del').classList.add('hidden');show('modal-memo');}
 function editMemo(id){const m=state.memos.find(x=>x.id===id);if(!m)return;editMemoId=id;document.getElementById('memo-title').textContent='메모 수정 ✏️';document.getElementById('memo-title-in').value=m.title;document.getElementById('memo-body-in').value=m.body;document.getElementById('btn-memo-del').classList.remove('hidden');show('modal-memo');}
 function closeMemo(){hide('modal-memo');editMemoId=null;}
-function saveMemo(){const title=document.getElementById('memo-title-in').value.trim();const body=document.getElementById('memo-body-in').value.trim();if(!title&&!body){alert('제목이나 내용을 입력해주세요');return;}const today=new Date();const dateStr=(today.getMonth()+1)+'월 '+today.getDate()+'일';if(editMemoId!==null){const m=state.memos.find(x=>x.id===editMemoId);if(m){m.title=title||'메모';m.body=body;}}else{state.memos.push({id:state.nextMemoId++,title:title||'메모',body,date:dateStr});}save();closeMemo();renderMemo();}
+
+function saveMemo(){
+  const title=document.getElementById('memo-title-in').value.trim();
+  const body=document.getElementById('memo-body-in').value.trim();
+  
+  if(!title&&!body){
+    alert('제목이나 내용을 입력해주세요');
+    return;
+  }
+  
+  const now=new Date();
+  const hour=String(now.getHours()).padStart(2,'0');
+  const min=String(now.getMinutes()).padStart(2,'0');
+  const dateStr=(now.getMonth()+1)+'월 '+now.getDate()+'일 '+hour+':'+min;
+  
+  if(editMemoId!==null){
+    const m=state.memos.find(x=>x.id===editMemoId);
+    if(m){
+      m.title=title||'메모';
+      m.body=body;
+    }
+  }else{
+    state.memos.push({
+      id:state.nextMemoId++,
+      title:title||'메모',
+      body:body,
+      date:dateStr
+    });
+  }
+  
+  save();
+  closeMemo();
+  renderMemo();
+}
+
 function delMemo(){if(!confirm('삭제할까요?'))return;state.memos=state.memos.filter(m=>m.id!==editMemoId);save();closeMemo();renderMemo();}
-function tab(t,btn){['cal','album','memo','set'].forEach(x=>hide('tab-'+x));document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));show('tab-'+t);btn.classList.add('active');}
+function tab(t,btn){['cal','album','memo','set'].forEach(x=>hide('tab-'+x));document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));show('tab-'+t);btn.classList.add('active');if(t==='album'){renderAlbumFilter();}}
 
 init();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>null);}
